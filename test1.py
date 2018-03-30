@@ -50,17 +50,16 @@ def save_object(obj, filename):
     print("saved to " + filename)
 
 
-init_seq_num = 3301896950
-nb_of_hundreds = 50
+current_seq_num = 3300000000
+nb_of_hundreds = 100
 
 def createMatchList(init_seq_num, nb_of_hundreds, verbose=True):
     current_seq_num = init_seq_num
     res = []
     for hundred in range(nb_of_hundreds):
-        print('=========================')
-        print(f'{hundred} hundreds out of {nb_of_hundreds}')
+        print(f'{hundred} hundreds out of {nb_of_hundreds} : {current_seq_num}')
         try:
-            time.sleep(1)
+            time.sleep(0.1)
             hist = api.get_match_history_by_seq_num(start_at_match_seq_num=current_seq_num)
             status = hist['status']
             if int(status) == 1:
@@ -78,17 +77,28 @@ def createMatchList(init_seq_num, nb_of_hundreds, verbose=True):
 
             else:
                 current_seq_num += 100
-                print(f'something went wrong ({status})')
+                print(f'\b   something went wrong ({status})')
         except json.decoder.JSONDecodeError:
             print("something went horribly wrong")
-            traceback.print_exc()
-            current_seq_num = res[-1]['match_seq_num'] + 101
+            # traceback.print_exc()
+            if len(res) == 0:
+                current_seq_num += 101
+            else:
+                current_seq_num = res[-1]['match_seq_num'] + 101
     return res, current_seq_num
 
-batch, current_seq_num = createMatchList(init_seq_num, nb_of_hundreds, False)
-
-filename = f'seq_start_{init_seq_num}_seq_end_{current_seq_num}_nbhundreds{nb_of_hundreds}.pkl'
-save_object(batch, filename)
+for i in range(50):
+    try:
+        a = current_seq_num
+        batch, current_seq_num = createMatchList(current_seq_num, nb_of_hundreds, False)
+        print(current_seq_num)
+        t = time.strftime("%d_%b_%H:%M", time.gmtime())
+        filename = f'seq_start_{a}_seq_end_{current_seq_num}_nbhundreds{nb_of_hundreds}' + t + '.pkl'
+        save_object(batch, filename)
+    except APIError:
+        traceback.print_exc()
+        print(f'Something went wrong on {i}')
+        pass
 
 
 
