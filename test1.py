@@ -49,9 +49,12 @@ def save_object(obj, filename):
         pickle.dump(obj, output, pickle.HIGHEST_PROTOCOL)
     print("saved to " + filename)
 
+def load_object(filename):
+    with open(filename, 'rb') as the_file:
+        data = pickle.load(the_file)
+        return data 
 
-current_seq_num = 3300000000
-nb_of_hundreds = 100
+
 
 def createMatchList(init_seq_num, nb_of_hundreds, verbose=True):
     current_seq_num = init_seq_num
@@ -73,7 +76,7 @@ def createMatchList(init_seq_num, nb_of_hundreds, verbose=True):
                 res += l
                 s = getsizeof(res)
                 print(f'Size : {s} bytes')
-                current_seq_num = l[-1]['match_seq_num'] + 1
+                current_seq_num = res[-1]['match_seq_num'] + 1
 
             else:
                 current_seq_num += 100
@@ -87,26 +90,32 @@ def createMatchList(init_seq_num, nb_of_hundreds, verbose=True):
                 current_seq_num = res[-1]['match_seq_num'] + 101
     return res, current_seq_num
 
-for i in range(50):
-    try:
-        a = current_seq_num
-        batch, current_seq_num = createMatchList(current_seq_num, nb_of_hundreds, False)
-        print(current_seq_num)
-        t = time.strftime("%d_%b_%H:%M", time.gmtime())
-        filename = f'seq_start_{a}_seq_end_{current_seq_num}_nbhundreds{nb_of_hundreds}' + t + '.pkl'
-        save_object(batch, filename)
-    except APIError:
-        traceback.print_exc()
-        print(f'Something went wrong on {i}')
-        pass
+def main():
+
+    nb_of_hundreds = 200
+    current_seq_num = 3302372434
+    for i in range(50):
+        try:
+            a = current_seq_num
+            batch, current_seq_num = createMatchList(current_seq_num, nb_of_hundreds, False)
+            print(current_seq_num)
+            t = time.strftime("%d_%b_%H:%M", time.gmtime())
+            filename = f'seq_start_{a}_seq_end_{current_seq_num}_nbhundreds{nb_of_hundreds}' + t + '.pkl'
+            save_object(batch, filename)
+        except APIError:
+            traceback.print_exc()
+            print(f'Something went wrong on {i}')
+            pass
 
 
 
-def print_list_match(hist):
+def print_hist_match(hist):
     list_of_match = list(hist['matches'])
+    print_list_match(list_of_match)
+
+
+def print_list_match(list_of_match):
     for m in list_of_match:
-        print('====================')
-        print(m)
         match_seq_num = m['match_seq_num']
         match_id = m['match_id']
         if 'duration' in m:
@@ -117,14 +126,6 @@ def print_list_match(hist):
     print("Total number of matches : ",len(list_of_match))
 
 
-# print_list_match(hist)
-# print_list_match(hist3)
-# print('\n'*5)
-# print_list_match(hist4)
-print('\n'*5)
-print_list_match(hist5)
-
-exit()
 
 def getValidMatchListId(hist):
     r = []
@@ -142,8 +143,6 @@ def heroVectfromMatch(match):
         vect[id] = res
     return vect
 
-
-v = heroVectfromMatch(match)
 
 
 
@@ -190,16 +189,7 @@ def undefinite_parse():
         start = start-size
         i += 1
 
-undefinite_parse()
 
 
-
-hist2 = api.get_match_history()
-matches = getValidMatchListId(hist2)
-nextStart = loading_match_routine(matches, "firstBatch")
-
-hist2 = api.get_match_history_by_seq_num(start_at_match_seq_num=nextStart)
-matches2 = getValidMatchListId(hist2)
-nextS = loading_match_routine(matches2, "secondBatch")
-
-pass
+if __name__ == '__main__':
+    main()
