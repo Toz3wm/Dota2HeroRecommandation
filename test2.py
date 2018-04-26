@@ -1,7 +1,7 @@
 from test1 import *
 import os
 import time
-
+from util import *
 
 
 
@@ -48,25 +48,6 @@ def readable_herolist(hlist, hdict):
     return [hdict[h] for h in hlist]
 
 
-list1 = load_object('seq_start_3302283311_seq_end_3302286396_nbhundreds10027_Mar_13:30.pkl')
-
-# print_list_match(list1)
-
-print(list1[0])
-
-heroes = api.get_heroes()
-d = build_hero_dict(heroes['heroes'])
-print(d)
-
-
-# v = from_dict_to_vect(list1[:10])
-
-# print(v)
-print(d)
-# hero_list_from_vect(v[0][0], d)
-print(readable_herolist([1, 55, 87], d))
-# todo : class match pour stocker les infos
-
 def prune_match_list(match_list):
     res = []
     for match in match_list:
@@ -79,7 +60,7 @@ def prune_match_list(match_list):
     return res 
 
 
-def build_numpy_data():
+def build_numpy_data(filename):
     l = sorted(os.listdir())
     l = [v for v in l if '.pkl' in v]
     res_h, res_v = ([], [])
@@ -103,8 +84,8 @@ def build_numpy_data():
     print(victories.shape)
     print('total number of matches : ', np.sum(victories))
 
-    np.save('picks', heroes)
-    np.save('results', victories)
+    np.save(filename + 'picks', heroes)
+    np.save(filename + 'results', victories)
 
     print(heroes)
     print(victories)
@@ -122,6 +103,11 @@ def get_avg_winrate(hero_id, matches, victories):
 
 
 def main():
+
+    heroes_info = api.get_heroes()
+    d = build_hero_dict(heroes_info['heroes'])
+    print(d)
+
     heroes = np.load('picks.npy')
     victories = np.load('results.npy')
     for i in range(0, 121):
@@ -134,8 +120,8 @@ def main():
 
 
 if __name__ == '__main__':
-    build_numpy_data()
-    main()  
+    build_numpy_data('fifth_batch_')
+    # main()  
 
 
 
