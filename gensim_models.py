@@ -19,30 +19,10 @@ import gensim_modeling
 def get_basic_model():
 
     #without any embedding
-    input_shape =  (121,)
+    input_shape =  (2000,)
 
     inpu = Input(shape=input_shape)
     x = Dense(units=100, activation='relu')(inpu)    
-    x = Dense(units=100, activation='relu')(x)    
-    x = Dense(units=100, activation='relu')(x)    
-    x = Dense(units=200, activation='relu')(x)    
-    x = Dense(units=200, activation='relu')(x)
-    x = Dense(units=200, activation='relu')(x)
-    x = Dense(units=200, activation='relu')(x)
-    x = Dense(units=1, activation='sigmoid')(x)
-
-    return Model(inpu, x)    
-
-def get_embedded_basic_model(embedded_size):
-
-
-    # without embedding
-    input_shape =  (121,)
-    inpu = Input(shape=input_shape)
-
-    embe = Embedding(243, embedded_size, input_length=121, mask_zero=True)(inpu)
-    embe = Lambda(lambda x : K.sum(x, axis=1))(embe)
-    x = Dense(units=100, activation='relu')(embe)    
     x = Dense(units=100, activation='relu')(x)    
     x = Dense(units=100, activation='relu')(x)    
     x = Dense(units=200, activation='relu')(x)    
@@ -75,50 +55,6 @@ def get_moderate_model():
     return Model(inpu, x)    
     
 
-def get_embedded_moderate_model(embedded_size):
-
-    input_shape =  (121,)
-    inpu = Input(shape=input_shape)
-
-    embe = Embedding(243, embedded_size, input_length=121, mask_zero=True)(inpu)
-    embe = Lambda(lambda x : K.sum(x, axis=1))(embe)
-    x = Dense(units=200, activation='relu')(embe)    
-    x = Dense(units=200, activation='relu')(x)    
-    x = Dense(units=200, activation='relu')(x)    
-    x = Dense(units=200, activation='relu')(x)    
-    x = Dense(units=400, activation='relu')(x)    
-    x = Dense(units=400, activation='relu')(x)
-    x = Dense(units=400, activation='relu')(x)
-    x = Dense(units=400, activation='relu')(x)
-    x = Dense(units=800, activation='relu')(x)
-    x = Dense(units=1, activation='sigmoid')(x)
-
-    return Model(inpu, x)    
-
-
-def get_big_model():
-
-    #without any embedding
-    input_shape =  (121,)
-
-    inpu = Input(shape=input_shape)
-    x = Dense(units=200, activation='relu')(inpu)    
-    x = Dense(units=200, activation='relu')(x)    
-    x = Dense(units=200, activation='relu')(x)    
-    x = Dense(units=200, activation='relu')(x)    
-    x = Dense(units=400, activation='relu')(x)    
-    x = Dense(units=400, activation='relu')(x)
-    x = Dense(units=400, activation='relu')(x)
-    x = Dense(units=400, activation='relu')(x)
-    x = Dense(units=800, activation='relu')(x)
-    x = Dense(units=800, activation='relu')(x)
-    x = Dense(units=800, activation='relu')(x)
-    x = Dense(units=1600, activation='relu')(x)
-    x = Dense(units=1, activation='sigmoid')(x)
-
-    return Model(inpu, x)   
-    
-
 # from [0 0 0 1 1 0 -1 0 -1 0 1]
 # to [[0 0 0 4 5 0 -7 0 -9 0 11]
 #     [0 0 0 -4 -5 0 7 0 9 0 -11]]
@@ -136,7 +72,6 @@ def to_hero_index_and_augmentation(heroes, victories):
     # res = np.concatenate([heroes*indices + 122, heroes*indices*-1 + 122])
     res = np.concatenate([real_game, simulated_game])
     res[res == 122] = 0
-
     return  res, np.concatenate([victories, victories])
 
 
@@ -153,20 +88,23 @@ def preprocess_data(nb_matches):
     return heroes[:nb_matches], victories[:nb_matches]
 
 
-def train_basic(model_name):
+def train_gensim_basic(model_name, nb_matches):
     # loads data
 
-    heroes, victories = preprocess_data()
+    heroes, victories = preprocess_data(nb_matches)
     print("data shape : ", heroes.shape, victories.shape)
 
-    picks, victories = to_hero_index_and_augmentation(heroes, victories)
-
-
+    model, sentences = gensim_modeling.preprocess_for_keras(heroes, victories)
+    picks, victories = gensim_modeling.add_heroes_to_get_team(model, sentences, victories)
+    victories = np.concatenate([victories, victories])
     embedded_size = 1000
-    m = get_embedded_moderate_model(embedded_size)
+    print(picks.shape, victories.shape)
+
+
+    m = get_basic_model()
     m.summary()
 
-    opt = Adam(lr=0.00001)
+    opt = Adam(lr=0.0001)
     metrics = ['binary_accuracy']
 
     t = time.time()
@@ -180,7 +118,7 @@ def train_basic(model_name):
     m.compile(optimizer=opt, loss='binary_crossentropy', metrics=metrics)
     history = None
     try:
-        history = m.fit(x=picks, y=victories, batch_size=128, callbacks=callbacks, verbose=1, epochs=50, validation_split=0.15)
+        history = m.fit(x=picks, y=victories, batch_size=64, callbacks=callbacks, verbose=1, epochs=500, validation_split=0.15)
 
     except KeyboardInterrupt:
         print('\n Saving history of training to : ' + model_name + '_history')
@@ -212,7 +150,7 @@ def train_with_gensim(model_name, nb_matches):
     m.compile(optimizer=opt, loss='binary_crossentropy', metrics=metrics)
     history = None
     try:
-        history = m.fit(x=picks, y=victories, batch_size=128, callbacks=callbacks, verbose=1, epochs=50, validation_split=0.15)
+        history = m.fit(x=picks, y=victories, batch_size=128, callbacks=callbacks, verbose=1, epochs=500, validation_split=0.15)
 
     except KeyboardInterrupt:
         print('\n Saving history of training to : ' + model_name + '_history')
@@ -224,4 +162,5 @@ def train_with_gensim(model_name, nb_matches):
 if __name__ == '__main__':
 
     model_name = sys.argv[1]
-    train_basic(model_name)
+    nb_matches = int(sys.argv[2])
+    train_gensim_basic(model_name, nb_matches)
