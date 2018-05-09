@@ -4,7 +4,6 @@ import time
 from util import *
 
 
-
 def heroVectfromMatch(match):
     players = match['players']
     vect = np.zeros((121))
@@ -87,9 +86,6 @@ def build_numpy_data(filename):
     np.save(filename + 'picks', heroes)
     np.save(filename + 'results', victories)
 
-    print(heroes)
-    print(victories)
-
 
 def get_avg_winrate(hero_id, matches, victories):
     matches = matches[:, hero_id]
@@ -100,9 +96,7 @@ def get_avg_winrate(hero_id, matches, victories):
     return (radiant_v + dire_v) / total, total
 
 
-
-
-def main():
+def print_heroes_winrates():
 
     heroes_info = api.get_heroes()
     d = build_hero_dict(heroes_info['heroes'])
@@ -121,7 +115,7 @@ def main():
 
 if __name__ == '__main__':
     build_numpy_data('fifth_batch_')
-    # main()  
+    print_heroes_winrates()  
 
 
 

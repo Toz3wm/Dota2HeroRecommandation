@@ -4,9 +4,6 @@ import sys
 from dota2api.src.exceptions import APIError
 
 
-
-
-
 def createMatchList(init_seq_num, nb_of_hundreds, verbose=True):
     current_seq_num = init_seq_num
     res = []
@@ -41,8 +38,6 @@ def createMatchList(init_seq_num, nb_of_hundreds, verbose=True):
                 current_seq_num = res[-1]['match_seq_num'] + 101
     return res, current_seq_num
 
-
-
 def main(dirname):
 
     nb_of_hundreds = 200
@@ -62,7 +57,6 @@ def main(dirname):
             pass
 
 
-
 def getValidMatchListId(hist):
     r = []
     for match in hist['matches']:
@@ -78,9 +72,6 @@ def heroVectfromMatch(match):
         res = np.sign(4 - player['player_slot'])
         vect[id] = res
     return vect
-
-
-
 
 if __name__ == '__main__':
     dirname = sys.argv[1]

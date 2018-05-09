@@ -35,8 +35,6 @@ def get_basic_model():
 
 def get_embedded_basic_model(embedded_size):
 
-
-    # without embedding
     input_shape =  (121,)
     inpu = Input(shape=input_shape)
 
@@ -127,18 +125,10 @@ def to_hero_index_and_augmentation(heroes, victories):
     indices = np.arange(121)
     real_game = heroes * indices
     simulated_game = - heroes * indices
-    print(indices)
-    print(heroes)
-    print(real_game)
-    print(simulated_game)
-    # print(real_game[0])
-    # print(simulated_game[0])
-    # res = np.concatenate([heroes*indices + 122, heroes*indices*-1 + 122])
     res = np.concatenate([real_game, simulated_game])
     res[res == 122] = 0
 
     return  res, np.concatenate([victories, victories])
-
 
 
 def preprocess_data(nb_matches):
@@ -153,7 +143,7 @@ def preprocess_data(nb_matches):
     return heroes[:nb_matches], victories[:nb_matches]
 
 
-def train_basic(model_name):
+def train_basic(model_name, model_type):
     # loads data
 
     heroes, victories = preprocess_data()
@@ -163,7 +153,7 @@ def train_basic(model_name):
 
 
     embedded_size = 1000
-    m = get_embedded_moderate_model(embedded_size)
+    m = model_type(embedded_size)
     m.summary()
 
     opt = Adam(lr=0.00001)
@@ -185,43 +175,14 @@ def train_basic(model_name):
     except KeyboardInterrupt:
         print('\n Saving history of training to : ' + model_name + '_history')
         save_object(history, model_name + '_history')
-
-
-def train_with_gensim(model_name, nb_matches):
-    model_name += 'GENSIM' 
-    heroes, victories = preprocess_data(nb_matches)
-    print("data shape : ", heroes.shape, victories.shape)
-
-    heroes, heroes_indexes =gensim_modeling.preprocess_for_keras(heroes, victories)
-
-    embedded_size = 1000
-    m = get_embedded_moderate_model(embedded_size)
-    m.summary()
-
-    opt = Adam(lr=0.00001)
-    metrics = ['binary_accuracy']
-
-    t = time.time()
-    tb = TensorBoard(
-            log_dir=f"./logs/{t}_" + model_name,
-            write_graph=True,
-            write_images=True)
-
-    callbacks = [ModelCheckpoint(filepath='models/' + model_name, period=100), tb]
-
-    m.compile(optimizer=opt, loss='binary_crossentropy', metrics=metrics)
-    history = None
-    try:
-        history = m.fit(x=picks, y=victories, batch_size=128, callbacks=callbacks, verbose=1, epochs=50, validation_split=0.15)
-
-    except KeyboardInterrupt:
-        print('\n Saving history of training to : ' + model_name + '_history')
-        save_object(history, model_name + '_history')
-
-
 
 
 if __name__ == '__main__':
 
     model_name = sys.argv[1]
-    train_basic(model_name)
+    train_basic(model_name + '1', get_basic_model)
+    train_basic(model_name + '2', get_moderate_model)
+    train_basic(model_name + '3', get_big_model)
+    train_basic(model_name + '4', get_embedded_basic_model)
+    train_basic(model_name + '5', get_embedded_moderate_model)
+    train_basic(model_name + '6', get_embedded_big_model)

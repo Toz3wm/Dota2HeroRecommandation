@@ -6,12 +6,11 @@ import os
 import traceback
 from sys import getsizeof
 
-
 import dota2api
 import numpy as np
 from dota2api.src.exceptions import APIError
 
-api_file = "cle_api.txt"
+api_file = "api_key.txt"
 
 api_key = ""
 with open(api_file, "r") as f:
@@ -19,8 +18,6 @@ with open(api_file, "r") as f:
 
 print("api initialized")
 api = dota2api.Initialise(api_key, logging=False)
-
-
 
 
 def gather_data_from_npy():
@@ -105,8 +102,6 @@ def undefinite_parse():
         loading_match_routine(inde, filename)
         start = start-size
         i += 1
-
-
 
 
 def getValidMatchListId(hist):

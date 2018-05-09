@@ -1,8 +1,7 @@
 import os
 import sys
 
-from test1 import *
-from test2 import *
+from util import *
 
 
 def baseline(heroes_train, victories_train, heroes_val, victories_val, d):   

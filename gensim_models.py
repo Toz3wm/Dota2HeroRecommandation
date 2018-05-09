@@ -16,10 +16,10 @@ from util import save_object
 import gensim_modeling
 
 
-def get_basic_model():
+def get_basic_model(voc_size):
 
     #without any embedding
-    input_shape =  (2000,)
+    input_shape =  (2 * voc_size,)
 
     inpu = Input(shape=input_shape)
     x = Dense(units=100, activation='relu')(inpu)    
@@ -35,10 +35,10 @@ def get_basic_model():
 
 
 
-def get_moderate_model():
+def get_moderate_model(voc_size):
 
     #without any embedding
-    input_shape =  (121,)
+    input_shape =  (2 * voc_size,)
 
     inpu = Input(shape=input_shape)
     x = Dense(units=200, activation='relu')(inpu)    
@@ -55,25 +55,27 @@ def get_moderate_model():
     return Model(inpu, x)    
     
 
-# from [0 0 0 1 1 0 -1 0 -1 0 1]
-# to [[0 0 0 4 5 0 -7 0 -9 0 11]
-#     [0 0 0 -4 -5 0 7 0 9 0 -11]]
-# shifted such as min(res) = 0
-def to_hero_index_and_augmentation(heroes, victories):
-    indices = np.arange(121)
-    real_game = heroes * indices
-    simulated_game = - heroes * indices
-    print(indices)
-    print(heroes)
-    print(real_game)
-    print(simulated_game)
-    # print(real_game[0])
-    # print(simulated_game[0])
-    # res = np.concatenate([heroes*indices + 122, heroes*indices*-1 + 122])
-    res = np.concatenate([real_game, simulated_game])
-    res[res == 122] = 0
-    return  res, np.concatenate([victories, victories])
+def get_big_model(voc_size):
 
+    #without any embedding
+    input_shape =  (2 * voc_size,)
+
+    inpu = Input(shape=input_shape)
+    x = Dense(units=200, activation='relu')(inpu)    
+    x = Dense(units=200, activation='relu')(x)    
+    x = Dense(units=200, activation='relu')(x)    
+    x = Dense(units=200, activation='relu')(x)    
+    x = Dense(units=400, activation='relu')(x)    
+    x = Dense(units=400, activation='relu')(x)
+    x = Dense(units=400, activation='relu')(x)
+    x = Dense(units=400, activation='relu')(x)
+    x = Dense(units=800, activation='relu')(x)
+    x = Dense(units=800, activation='relu')(x)
+    x = Dense(units=800, activation='relu')(x)
+    x = Dense(units=1600, activation='relu')(x)
+    x = Dense(units=1, activation='sigmoid')(x)
+
+    return Model(inpu, x) 
 
 
 def preprocess_data(nb_matches):
@@ -97,11 +99,12 @@ def train_gensim_basic(model_name, nb_matches):
     model, sentences = gensim_modeling.preprocess_for_keras(heroes, victories)
     picks, victories = gensim_modeling.add_heroes_to_get_team(model, sentences, victories)
     victories = np.concatenate([victories, victories])
+
     embedded_size = 1000
     print(picks.shape, victories.shape)
 
-
-    m = get_basic_model()
+    m = model_name(embedded_size)
+    model_name = str(model_name)
     m.summary()
 
     opt = Adam(lr=0.0001)

@@ -8,59 +8,18 @@ import matplotlib.pyplot as plt
 
 
 def to_gensim_usage(heroes, hero_dict):
-
-    res = []
-
-    for i in range(heroes.shape[0]):
-        if i % 10000 == 0:
-            print(f'{i} out of ' + str(heroes.shape[0]))
-        h = heroes[i]
-        # print(h)
-        a = h[0 < h]
-        b = h[h < 0]
-        l = list(a) + list(b)
-        # print('============ h=============', h,)
-        # print('============ a=============', a,)
-        # print('============ b=============', b,)
-        # print('============ l=============', l)
-        # r = LabeledSentence(words=[str(pick) for pick in l])
-        r = []
-        try:
-            for p in l:
-                if p < 122 and p > 0:
-                    r.append(hero_dict[p])
-                else:
-                    r.append('_' + hero_dict[-p])
-        except KeyError:
-            print(l)
-            assert False
-
-        # print(r)
-        res.append(r)
-
-    return res
-
-
+    return to_gensim_usage_with_victories_only(heroes, np.ones(heroes.shape[0]),hero_dict)
 
 def to_gensim_usage_with_victories_only(heroes, victories, hero_dict):
 
     res = []
-
     for i in range(heroes.shape[0]):
         if i % 10000 == 0:
             print(f'{i} out of ' + str(heroes.shape[0]))
         if not victories[i]:
             continue
         h = heroes[i]
-        # print(h)
-        a = h[0 < h]
-        b = h[h < 0]
-        l = list(a) + list(b)
-        # print('============ h=============', h,)
-        # print('============ a=============', a,)
-        # print('============ b=============', b,)
-        # print('============ l=============', l)
-        # r = LabeledSentence(words=[str(pick) for pick in l])
+        l = list(h[0 < h]) + list(h[h < 0])
         r = []
         try:
             for p in l:
@@ -71,10 +30,7 @@ def to_gensim_usage_with_victories_only(heroes, victories, hero_dict):
         except KeyError:
             print(l)
             assert False
-
-        # print(r)
         res.append(r)
-
     return res
 
 
@@ -90,35 +46,21 @@ def get_heroes_similarities(hero_repr, hero_dict):
     return aa
 
 
-def all_heroesDIRE_most_similar(hero_repr, hero_dict):
+def all_heroes_most_similar(hero_repr, hero_dict, dire=False, res_size=121):
     for h in hero_dict.values():
-        h = '_' + h
-        print('========', h, '============')
-        print([z[0] for z in hero_repr.most_similar(positive=[h], topn=121)])
-
-
-
-def all_heroes_most_similar(hero_repr, hero_dict):
-    for h in hero_dict.values():
-        print('========', h, '============')
-        print([z[0] for z in hero_repr.most_similar(positive=[h], topn=121)])
-
-
-def heroesDIRE_most_similar(hero_repr, hero_dict):
-    for h in hero_dict.values():
-        if h == 'Anti-Mage':
+        if dire:
             h = '_' + h
-            print('========', h, '============')
-            print([z[0] for z in hero_repr.most_similar(positive=[h], topn=121)])
+        print('========', h, '============')
+        print([z[0] for z in hero_repr.most_similar(positive=[h], topn=121)])
 
 
-
-def heroes_most_similar(hero_repr, hero_dict):
+def AntiMage_most_similar(hero_repr, hero_dict, dire=False, res_size=121):
     for h in hero_dict.values():
         if h == 'Anti-Mage':
-            print('========', h, '============')
-            print([z[0] for z in hero_repr.most_similar(positive=[h], topn=121)])
-
+            if dire:
+                h = '_' + h
+                print('========', h, '============')
+                print([z[0] for z in hero_repr.most_similar(positive=[h], topn=121)])
 
 
 def get_heroes_representation(heroes, victories):
