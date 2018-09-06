@@ -2,6 +2,8 @@
 
 Machine learning based dota2 hero recommandations
 
+*See pdf report in files for more details*
+
 Requirements :
 	- Keras
 	- Tensorflow
